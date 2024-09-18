@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Student Progress Reports</h2>
+        <table>
+            <tr>
+                <th>Student</th>
+                <th>Total Questions</th>
+                <th>Correct Answers</th>
+            </tr>
+            {% for data in report_data %}
+                <tr>
+                    <td>{{ data.username }}</td>
+                    <td>{{ data.total_questions }}</td>
+                    <td>{{ data.correct_answers }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+        <a href="/teacher_dashboard"><button>Back to Dashboard</button></a>
+    </div>
+</body>
+</html>

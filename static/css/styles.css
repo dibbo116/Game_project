@@ -1,0 +1,142 @@
+/* General Styles */
+body {
+    background: linear-gradient(to right, #a1c4fd, #c2e9fb); /* Gradient background */
+    font-family: 'Comic Sans MS', 'Comic Sans', sans-serif; /* Playful, child-friendly font */
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    animation: backgroundAnimation 10s infinite alternate; /* Background animation */
+}
+
+/* Background Animation */
+@keyframes backgroundAnimation {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+/* Container */
+.container {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 1.5s;
+}
+
+/* Fade-In Animation */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Headers */
+h1, h2 {
+    color: #ff6347;
+    text-shadow: 2px 2px #ff4500; /* Add text shadow */
+    animation: bounce 2s infinite; /* Bouncing animation */
+}
+
+/* Bounce Animation */
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-15px); }
+    60% { transform: translateY(-10px); }
+}
+
+/* Button Styles */
+button {
+    background-color: #ff6347; /* Tomato color */
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.2em;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: transform 0.3s, background-color 0.3s, box-shadow 0.3s;
+    animation: buttonGlow 2s infinite alternate; /* Glowing button animation */
+}
+
+button:hover {
+    background-color: #ff4500; /* Darker shade */
+    transform: scale(1.1); /* Scale up on hover */
+    box-shadow: 0 0 15px rgba(255, 99, 71, 0.7); /* Glowing effect */
+}
+
+/* Button Glow Animation */
+@keyframes buttonGlow {
+    0% { box-shadow: 0 0 10px rgba(255, 99, 71, 0.5); }
+    100% { box-shadow: 0 0 20px rgba(255, 99, 71, 1); }
+}
+
+/* Input Fields */
+input[type="text"],
+input[type="password"],
+input[type="number"],
+select {
+    width: 80%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border: 2px solid #4682b4;
+    font-size: 1.1em;
+    transition: box-shadow 0.3s;
+}
+
+input:focus, select:focus {
+    box-shadow: 0 0 10px #4682b4; /* Focus effect */
+}
+
+/* Flash Message */
+.flash-message {
+    font-size: 1.2em;
+    color: #32CD32; /* LimeGreen for success */
+    animation: fadeInOut 3s; /* Fade-in and fade-out animation */
+}
+
+/* Fade-in and Fade-out Animation */
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Character Image */
+.character-image {
+    width: 150px;
+    height: auto;
+    animation: bounce 1s ease-out; /* Bounce effect for character */
+}
+
+/* Loading Animation */
+#loading-animation {
+    display: none;
+    margin: 20px auto;
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #ff6347;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* List Styles (for progress and reports) */
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    background: #e6f7ff;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 8px;
+}

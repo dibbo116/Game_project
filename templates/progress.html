@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Progress</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Your Progress</h2>
+
+        <!-- Flash messages for feedback -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-message">{{ messages[0] }}</div>
+            {% endif %}
+        {% endwith %}
+
+        <p>Total Questions Attempted: {{ total_questions }}</p>
+        <p>Correct Answers: {{ correct_answers }}</p>
+        <ul>
+            {% for score in scores %}
+                <li>{{ score.question_text }} - {{ 'Correct' if score.score == 1 else 'Incorrect' }}</li>
+            {% endfor %}
+        </ul>
+        <a href="/student_dashboard"><button>Back to Dashboard</button></a>
+    </div>
+</body>
+</html>

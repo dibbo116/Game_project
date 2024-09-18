@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arithmetic Game</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the Arithmetic Game</h1>
+        <!-- Flash messages for feedback -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-message">{{ messages[0] }}</div>
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Buttons for navigation -->
+        {% if 'user_id' in session %}
+            {% if session['role'] == 'student' %}
+                <a href="/student_dashboard"><button>Go to Student Dashboard</button></a>
+            {% elif session['role'] == 'teacher' %}
+                <a href="/teacher_dashboard"><button>Go to Teacher Dashboard</button></a>
+            {% endif %}
+            <a href="/logout"><button>Log Out</button></a>
+        {% else %}
+            <a href="/login"><button>Login</button></a>
+            <a href="/register"><button>Register</button></a>
+        {% endif %}
+    </div>
+</body>
+</html>

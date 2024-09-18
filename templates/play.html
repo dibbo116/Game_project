@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play Game</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Answer the Question</h2>
+
+        <!-- Character Animation -->
+        <div id="character-animation">
+            {% with messages = get_flashed_messages() %}
+                {% if 'Correct' in messages[0] %}
+                    <img src="{{ url_for('static', filename='images/thumbs_up.jpeg') }}" alt="Thumbs Up" class="character-image" onload="playSound('correct-sound')">
+                {% elif 'Incorrect' in messages[0] %}
+                    <img src="{{ url_for('static', filename='images/sad_face.jpg') }}" alt="Sad Face" class="character-image" onload="playSound('incorrect-sound')">
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Flash Messages for Feedback -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-message">{{ messages[0] }}</div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Display Question -->
+        <p>{{ question.question_text }}</p>
+
+        <!-- Answer Form with Multiple-Choice Options -->
+        <form method="POST" action="/play" onsubmit="showLoader(); playSound('click-sound');">
+            <input type="hidden" name="question_id" value="{{ question.id }}">
+
+            <!-- Multiple Choice Options -->
+            {% for option in options %}
+                <label>
+                    <input type="radio" name="answer" value="{{ option }}" required> {{ option }}
+                </label><br>
+            {% endfor %}
+
+            <button type="submit">Submit</button>
+        </form>
+
+        <a href="/student_dashboard"><button>Back to Dashboard</button></a>
+
+        <!-- Sound Effects -->
+        <audio id="click-sound" src="{{ url_for('static', filename='sounds/click.mp3') }}"></audio>
+        <audio id="correct-sound" src="{{ url_for('static', filename='sounds/correct.mp3') }}"></audio>
+        <audio id="incorrect-sound" src="{{ url_for('static', filename='sounds/incorrect.mp3') }}"></audio>
+    </div>
+
+    <!-- JavaScript for Loading Animation and Sound Effects -->
+    <script>
+        function showLoader() {
+            document.getElementById('loading-animation').style.display = 'block';
+        }
+
+        function playSound(soundId) {
+            var sound = document.getElementById(soundId);
+            sound.play();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Questions</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Manage Questions</h2>
+        <a href="/add_question"><button>Add New Question</button></a>
+        <ul>
+            {% for question in questions %}
+                <li>
+                    {{ question.question_text }} (Answer: {{ question.answer }}, Difficulty: {{ question.difficulty }})
+                    <a href="/delete_question/{{ question.id }}"><button>Delete</button></a>
+                </li>
+            {% endfor %}
+        </ul>
+        <a href="/"><button>Back to Home</button></a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Question</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Add New Question</h2>
+        <form method="POST" action="/add_question">
+            <label>Question Text:</label><br>
+            <input type="text" name="question_text" required><br>
+            <label>Answer:</label><br>
+            <input type="number" name="answer" required><br>
+            <label>Difficulty:</label><br>
+            <select name="difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select><br>
+            <button type="submit">Add Question</button>
+        </form>
+        <a href="/questions"><button>Back to Questions</button></a>
+    </div>
+</body>
+</html>
