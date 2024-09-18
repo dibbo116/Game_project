@@ -5,6 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Play Game</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        /* Style for highlighting selected option */
+        .option {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px;
+            background-color: #e6f7ff;
+            border-radius: 10px;
+            border: 2px solid #4682b4;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .option:hover {
+            background-color: #d1e7ff;
+        }
+
+        .selected {
+            background-color: #90ee90; /* Light green for selected */
+            transform: scale(1.05); /* Slightly enlarge */
+        }
+
+        .disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -32,17 +59,20 @@
         <p>{{ question.question_text }}</p>
 
         <!-- Answer Form with Multiple-Choice Options -->
-        <form method="POST" action="/play" onsubmit="showLoader(); playSound('click-sound');">
+        <form id="answer-form" method="POST" action="/play" onsubmit="handleSubmit();">
             <input type="hidden" name="question_id" value="{{ question.id }}">
 
             <!-- Multiple Choice Options -->
-            {% for option in options %}
-                <label>
-                    <input type="radio" name="answer" value="{{ option }}" required> {{ option }}
-                </label><br>
-            {% endfor %}
+            <div id="options-container">
+                {% for option in options %}
+                    <div class="option" onclick="selectOption(this, '{{ option }}')">
+                        <input type="radio" name="answer" value="{{ option }}" required style="display: none;">
+                        <span>{{ option }}</span>
+                    </div>
+                {% endfor %}
+            </div>
 
-            <button type="submit">Submit</button>
+            <button type="submit" id="submit-button">Submit</button>
         </form>
 
         <a href="/student_dashboard"><button>Back to Dashboard</button></a>
@@ -53,14 +83,48 @@
         <audio id="incorrect-sound" src="{{ url_for('static', filename='sounds/incorrect.mp3') }}"></audio>
     </div>
 
-    <!-- JavaScript for Loading Animation and Sound Effects -->
+    <!-- JavaScript for Interactivity and Sound Effects -->
     <script>
+        let selectedOption = null;
+
+        // Function to handle option selection
+        function selectOption(element, value) {
+            // Remove 'selected' class from all options
+            const options = document.querySelectorAll('.option');
+            options.forEach(option => option.classList.remove('selected'));
+
+            // Add 'selected' class to the clicked option
+            element.classList.add('selected');
+
+            // Set the selected value for submission
+            document.querySelector(`input[value="${value}"]`).checked = true;
+
+            // Store the selected option element
+            selectedOption = element;
+        }
+
+        // Function to handle form submission
+        function handleSubmit() {
+            // Play click sound
+            playSound('click-sound');
+
+            // Disable further selection and the submit button
+            document.getElementById('submit-button').disabled = true;
+            const options = document.querySelectorAll('.option');
+            options.forEach(option => option.classList.add('disabled'));
+
+            // Show loader
+            showLoader();
+        }
+
+        // Function to show the loading animation
         function showLoader() {
             document.getElementById('loading-animation').style.display = 'block';
         }
 
+        // Function to play sound effects
         function playSound(soundId) {
-            var sound = document.getElementById(soundId);
+            const sound = document.getElementById(soundId);
             sound.play();
         }
     </script>
