@@ -6,6 +6,7 @@ from flask import flash
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
+
 # MySQL Database Connection
 db_connection = mysql.connector.connect(
     host="localhost",
