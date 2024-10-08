@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Assignments</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Available Assignments</h2>
+        <ul>
+            {% for assignment in assignments %}
+                <li>
+                    <strong>{{ assignment.title }}</strong><br>
+                    <p>{{ assignment.description }}</p>
+                    <a href="/start_assignment/{{ assignment.id }}"><button>Start Assignment</button></a>
+                </li>
+            {% endfor %}
+        </ul>
+        <a href="/student_dashboard"><button>Back to Dashboard</button></a>
+    </div>
+</body>
+</html>

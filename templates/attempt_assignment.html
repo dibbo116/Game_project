@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Attempt Assignment</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Attempt Assignment</h2>
+        {% if current_question %}
+            <form action="/attempt_assignment/{{ assignment_id }}/{{ question_index }}" method="POST">
+                <div class="question-block">
+                    <p><strong>Question:</strong> {{ current_question.question_text }}</p>
+                    <input type="hidden" name="question_id" value="{{ current_question.id }}">
+                    <div class="options">
+                        {% for option in options %}
+                            <label>
+                                <input type="radio" name="answer" value="{{ option }}" required> {{ option }}
+                            </label><br>
+                        {% endfor %}
+                    </div>
+                    <button type="submit">Submit Answer</button>
+                </div>
+            </form>
+        {% else %}
+            <p>You have completed all questions in this assignment. Thank you for your participation!</p>
+            <a href="/view_assignments"><button>Back to Assignments</button></a>
+        {% endif %}
+    </div>
+</body>
+</html>

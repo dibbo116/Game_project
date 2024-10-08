@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Questions to Assignment</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Add Questions to Assignment</h2>
+        <form action="/add_questions_to_assignment/{{ assignment_id }}" method="POST">
+            <label for="question_text">Question Text:</label>
+            <input type="text" id="question_text" name="question_text" required><br>
+
+            <label for="answer">Correct Answer:</label>
+            <input type="number" id="answer" name="answer" required><br>
+
+            <label for="difficulty">Difficulty Level:</label>
+            <select name="difficulty" id="difficulty" required>
+                <option value="">Select Difficulty</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select><br>
+
+            <button type="submit">Add Question</button>
+        </form>
+
+        <h3>Questions Already Added to this Assignment</h3>
+        <ul>
+            {% for question in assignment_questions %}
+                <li>
+                    {{ question.question_text }} (Answer: {{ question.answer }}, Difficulty: {{ question.difficulty }})
+                    <a href="/remove_question_from_assignment/{{ question.id }}/{{ assignment_id }}"><button>Remove</button></a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <a href="/manage_assignments"><button>Back to Manage Assignments</button></a>
+    </div>
+</body>
+</html>

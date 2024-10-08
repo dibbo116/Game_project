@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Assignment</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Edit Assignment</h2>
+        <form action="/edit_assignment/{{ assignment.id }}" method="POST">
+            <label for="title">Assignment Title:</label>
+            <input type="text" id="title" name="title" value="{{ assignment.title }}" required><br>
+
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" rows="4" cols="50">{{ assignment.description }}</textarea><br>
+
+            <button type="submit">Update Assignment</button>
+        </form>
+        <a href="/manage_assignments"><button>Back to Manage Assignments</button></a>
+    </div>
+</body>
+</html>
