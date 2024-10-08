@@ -8,7 +8,7 @@
 </head>
 <body>
     <div class="container">
-        <h2>Welcome, Teacher!</h2>
+        <h2>Welcome, {{ full_name }}!</h2>
 
         <!-- Flash messages for feedback -->
         {% with messages = get_flashed_messages() %}
@@ -17,9 +17,13 @@
             {% endif %}
         {% endwith %}
 
-        <a href="/questions"><button>Manage Questions</button></a>
-        <a href="/reports"><button>View Reports</button></a>
-        <a href="/logout"><button>Log Out</button></a>
+        <!-- Dashboard Controls -->
+        <div class="dashboard-controls">
+            <a href="/teacher_profile"><button>Show Profile</button></a>
+            <a href="/questions"><button>Manage Questions</button></a>
+            <a href="/reports"><button>View Reports</button></a>
+            <a href="/logout"><button>Log Out</button></a>
+        </div>
     </div>
 </body>
 </html>
