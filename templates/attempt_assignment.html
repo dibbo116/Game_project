@@ -4,29 +4,108 @@
     <meta charset="UTF-8">
     <title>Attempt Assignment</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .option {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px;
+            background-color: #e6f7ff;
+            border-radius: 10px;
+            border: 2px solid #4682b4;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .option:hover {
+            background-color: #d1e7ff;
+        }
+
+        .selected {
+            background-color: #90ee90;
+            transform: scale(1.05);
+        }
+
+        .disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>Attempt Assignment</h2>
+
+        <!-- Character Animation -->
+        <div id="character-animation">
+            {% with messages = get_flashed_messages() %}
+                {% if 'Correct' in messages[0] %}
+                    <img src="{{ url_for('static', filename='images/thumbs_up.jpeg') }}" alt="Thumbs Up" class="character-image" onload="playSound('correct-sound')">
+                {% elif 'Incorrect' in messages[0] %}
+                    <img src="{{ url_for('static', filename='images/sad_face.jpg') }}" alt="Sad Face" class="character-image" onload="playSound('incorrect-sound')">
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Flash Messages for Feedback -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-message">{{ messages[0] }}</div>
+            {% endif %}
+        {% endwith %}
+
         {% if current_question %}
-            <form action="/attempt_assignment/{{ assignment_id }}/{{ question_index }}" method="POST">
-                <div class="question-block">
-                    <p><strong>Question:</strong> {{ current_question.question_text }}</p>
-                    <input type="hidden" name="question_id" value="{{ current_question.id }}">
-                    <div class="options">
-                        {% for option in options %}
-                            <label>
-                                <input type="radio" name="answer" value="{{ option }}" required> {{ option }}
-                            </label><br>
-                        {% endfor %}
-                    </div>
-                    <button type="submit">Submit Answer</button>
+            <p><strong>Question:</strong> {{ current_question.question_text }}</p>
+
+            <!-- Answer Form with Multiple-Choice Options -->
+            <form action="/attempt_assignment/{{ assignment_id }}/{{ question_index }}" method="POST" onsubmit="return handleSubmit();">
+                <input type="hidden" name="question_id" value="{{ current_question.id }}">
+
+                <div id="options-container">
+                    {% for option in options %}
+                        <div class="option" onclick="selectOption(this, '{{ option }}')">
+                            <input type="radio" name="answer" value="{{ option }}" required style="display: none;">
+                            <span>{{ option }}</span>
+                        </div>
+                    {% endfor %}
                 </div>
+
+                <button type="submit" id="submit-button">Submit Answer</button>
             </form>
         {% else %}
             <p>You have completed all questions in this assignment. Thank you for your participation!</p>
             <a href="/view_assignments"><button>Back to Assignments</button></a>
         {% endif %}
+
+        <!-- Sound Effects -->
+        <audio id="click-sound" src="{{ url_for('static', filename='sounds/click.mp3') }}"></audio>
+        <audio id="correct-sound" src="{{ url_for('static', filename='sounds/correct.mp3') }}"></audio>
+        <audio id="incorrect-sound" src="{{ url_for('static', filename='sounds/incorrect.mp3') }}"></audio>
     </div>
+
+    <script>
+        function selectOption(element, value) {
+            document.querySelectorAll('.option').forEach(option => option.classList.remove('selected'));
+            element.classList.add('selected');
+            document.querySelector(`input[value="${value}"]`).checked = true;
+        }
+
+        function handleSubmit() {
+            playSound('click-sound');
+            document.getElementById('submit-button').disabled = true;
+            document.querySelectorAll('.option').forEach(option => option.classList.add('disabled'));
+            return true;
+        }
+
+        function playSound(soundId) {
+            const sound = document.getElementById(soundId);
+            if (sound) {
+                sound.play().catch(error => {
+                    console.error("Audio playback failed:", error);
+                });
+            } else {
+                console.error("Sound element not found:", soundId);
+            }
+        }
+    </script>
 </body>
 </html>
