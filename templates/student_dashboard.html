@@ -7,6 +7,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
+    
     <div class="container">
         <h2>Welcome, Student!</h2>
 
@@ -16,10 +17,14 @@
                 <div class="flash-message">{{ messages[0] }}</div>
             {% endif %}
         {% endwith %}
+
         <a href="/view_assignments"><button>View Assignments</button></a>
         <a href="/play"><button>Play Game</button></a>
         <a href="/progress"><button>View Progress</button></a>
         <a href="/logout"><button>Log Out</button></a>
-    </div>
+        <a href="/view_assignment_progress"><button>View Assignment Progress</button></a>
+
+
+ 
 </body>
 </html>

@@ -95,6 +95,30 @@ def student_dashboard():
         return redirect(url_for('login'))
     return render_template('student_dashboard.html')
 
+# View Assignment Progress Route Asaduddin mohamad (104701433)
+@app.route('/view_assignment_progress')
+def view_assignment_progress():
+    if 'user_id' not in session or session['role'] != 'student':
+        flash('Only students can view assignment progress!')
+        return redirect(url_for('login'))
+
+    with db_connection.cursor(dictionary=True) as cursor:
+        # Fetch assignments along with the number of questions and student's correct answers
+        cursor.execute("""
+            SELECT a.id, a.title, COUNT(q.id) AS total_questions, 
+                   SUM(CASE WHEN sar.is_correct = 1 THEN 1 ELSE 0 END) AS correct_answers
+            FROM assignments a
+            LEFT JOIN assignment_questions aq ON a.id = aq.assignment_id
+            LEFT JOIN questions q ON aq.question_id = q.id
+            LEFT JOIN student_assignment_responses sar ON q.id = sar.question_id 
+                 AND sar.user_id = %s
+            GROUP BY a.id, a.title
+        """, (session['user_id'],))
+        assignment_progress = cursor.fetchall()
+
+    return render_template('view_assignment_progress.html', assignment_progress=assignment_progress)
+
+
 # Teacher Dashboard Route with Profile Display
 @app.route('/teacher_dashboard')
 def teacher_dashboard():
@@ -174,12 +198,16 @@ def view_assignments():
         assignments = cursor.fetchall()
 
     return render_template('view_assignments.html', assignments=assignments)
-# Route to attempt an assignment question-by-question (student)
+# Route to attempt an assignment question-by-question (student)(104701433 Asaduddin mohammad)
 @app.route('/attempt_assignment/<int:assignment_id>/<int:question_index>', methods=['GET', 'POST'])
 def attempt_assignment(assignment_id, question_index):
     if 'user_id' not in session or session['role'] != 'student':
         flash('Only students can attempt assignments!')
         return redirect(url_for('login'))
+
+    # Define difficulty levels in order
+    difficulty_levels = ['easy', 'medium', 'hard']
+    current_difficulty = session.get('difficulty_level', 'easy')  # Default to 'easy'
 
     with db_connection.cursor(dictionary=True) as cursor:
         if request.method == 'POST':
@@ -195,26 +223,46 @@ def attempt_assignment(assignment_id, question_index):
                                (assignment_id, question_id, session['user_id'], student_answer, is_correct))
                 db_connection.commit()
 
-            # Move to the next question
+            # Move to the next question index
             question_index += 1
 
-        # Fetch the next question in the assignment
-        cursor.execute("""
-            SELECT q.id, q.question_text, q.answer FROM questions q
-            JOIN assignment_questions aq ON q.id = aq.question_id
-            WHERE aq.assignment_id = %s
-            ORDER BY q.id LIMIT 1 OFFSET %s
-        """, (assignment_id, question_index))
-        current_question = cursor.fetchone()
+        # Attempt to fetch a question, iterating over remaining difficulties if needed
+        question_found = False
+        for difficulty in difficulty_levels[difficulty_levels.index(current_difficulty):]:
+            cursor.execute("""
+                SELECT q.id, q.question_text, q.answer FROM questions q
+                JOIN assignment_questions aq ON q.id = aq.question_id
+                WHERE aq.assignment_id = %s AND q.difficulty = %s
+                ORDER BY q.id LIMIT 1 OFFSET %s
+            """, (assignment_id, difficulty, question_index))
+            current_question = cursor.fetchone()
 
-        # Generate multiple-choice options if there is a question
+            if current_question:
+                # Found a question; update session and break out of the loop
+                session['difficulty_level'] = difficulty
+                current_difficulty = difficulty  # Keep track of the difficulty level for display
+                question_found = True
+                break
+            else:
+                # Reset index for the next difficulty level if no question was found
+                question_index = 0
+
+        # Generate multiple-choice options if a question is found
         options = []
-        if current_question:
+        if question_found and current_question:
             correct_answer = current_question['answer']
             options = [correct_answer] + random.sample(range(correct_answer - 10, correct_answer + 10), 3)
             random.shuffle(options)
+        else:
+            # No more questions left in all difficulty levels
+            flash("You have completed all questions in this assignment!")
+            return redirect(url_for('view_assignments'))
 
-    return render_template('attempt_assignment.html', current_question=current_question, options=options, assignment_id=assignment_id, question_index=question_index)
+    return render_template('attempt_assignment.html', current_question=current_question, options=options, assignment_id=assignment_id, question_index=question_index, current_difficulty=current_difficulty)
+
+
+
+      
 
 # Route to add questions to an assignment (teacher)
 @app.route('/add_questions_to_assignment/<int:assignment_id>', methods=['GET', 'POST'])
@@ -310,8 +358,39 @@ def start_assignment(assignment_id):
         flash('Only students can start assignments!')
         return redirect(url_for('login'))
 
-    # Redirect to the first question in the assignment
+    # Check if the student has already completed this assignment
+    with db_connection.cursor(dictionary=True) as cursor:
+        cursor.execute("""
+            SELECT COUNT(*) AS completed 
+            FROM student_assignment_responses 
+            WHERE assignment_id = %s AND user_id = %s
+        """, (assignment_id, session['user_id']))
+        result = cursor.fetchone()
+        if result['completed'] > 0:
+            flash('Oops You have already submitted this assignment.')
+            return redirect(url_for('view_assignments'))
+
+    # Reset difficulty level on assignment start
+    session['difficulty_level'] = 'easy'
+
     return redirect(url_for('attempt_assignment', assignment_id=assignment_id, question_index=0))
+
+
+    # (Asaduddin mohammad 104701433 )Check if the student has already completed this assignment
+    with db_connection.cursor(dictionary=True) as cursor:
+        cursor.execute("""
+            SELECT COUNT(*) AS completed 
+            FROM student_assignment_responses 
+            WHERE assignment_id = %s AND user_id = %s
+        """, (assignment_id, session['user_id']))
+        result = cursor.fetchone()
+        if result['completed'] > 0:
+            flash('Oops You have already submitted this assignment.')
+            return redirect(url_for('view_assignments'))
+
+    # Redirect to the first question in the assignment if not completed
+    return redirect(url_for('attempt_assignment', assignment_id=assignment_id, question_index=0))
+
 
 # Teacher Reports Route
 @app.route('/reports')

@@ -35,7 +35,7 @@
     <div class="container">
         <h2>Attempt Assignment</h2>
 
-        <!-- Character Animation -->
+        <!-- Character Animation Asaduddin mohammad (104701433)-->
         <div id="character-animation">
             {% with messages = get_flashed_messages() %}
                 {% if 'Correct' in messages[0] %}
@@ -45,6 +45,8 @@
                 {% endif %}
             {% endwith %}
         </div>
+<!-- Display Current Difficulty Level -->
+<p><strong>Difficulty:</strong> {{ current_difficulty|capitalize }}</p>
 
         <!-- Flash Messages for Feedback -->
         {% with messages = get_flashed_messages() %}
