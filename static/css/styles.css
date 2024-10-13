@@ -75,6 +75,7 @@ button:hover {
 input[type="text"],
 input[type="password"],
 input[type="number"],
+
 select {
     width: 80%;
     padding: 12px;
@@ -166,3 +167,4 @@ li {
     font-size: 1.1em;
     margin: 5px 0;
 }
+
