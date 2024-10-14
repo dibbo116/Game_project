@@ -6,7 +6,7 @@ import os
 import random
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+app.secret_key = '12'
 
 # MySQL Database Connection
 db_connection = mysql.connector.connect(
