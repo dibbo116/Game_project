@@ -133,6 +133,28 @@ def teacher_dashboard():
         profile = cursor.fetchone()
 
     return render_template('teacher_dashboard.html', full_name=profile['full_name'])
+# New Route for Teacher to View Student Assignment Progress
+@app.route('/student_assignment_progress')
+def student_assignment_progress():
+    if 'user_id' not in session or session['role'] != 'teacher':
+        flash('Only teachers can view student progress!')
+        return redirect(url_for('login'))
+
+    with db_connection.cursor(dictionary=True) as cursor:
+        cursor.execute("""
+            SELECT u.username, a.title AS assignment_title, COUNT(q.id) AS total_questions,
+                   SUM(CASE WHEN sar.is_correct = 1 THEN 1 ELSE 0 END) AS correct_answers
+            FROM users u
+            LEFT JOIN student_assignment_responses sar ON u.id = sar.user_id
+            LEFT JOIN questions q ON sar.question_id = q.id
+            LEFT JOIN assignments a ON sar.assignment_id = a.id
+            WHERE u.role = 'student'
+            GROUP BY u.username, a.id
+            ORDER BY u.username, a.title
+        """)
+        student_progress = cursor.fetchall()
+
+    return render_template('student_assignment_progress.html', student_progress=student_progress)
 
 
 # Route to View Teacher Profile
