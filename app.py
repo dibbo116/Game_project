@@ -205,32 +205,20 @@ def attempt_assignment(assignment_id, question_index):
         flash('Only students can attempt assignments!')
         return redirect(url_for('login'))
 
+    # Initialize hint to avoid UnboundLocalError
+    hint = None
+    correct_answer = None
+
     # Define difficulty levels in order
     difficulty_levels = ['easy', 'medium', 'hard']
     current_difficulty = session.get('difficulty_level', 'easy')  # Default to 'easy'
 
     with db_connection.cursor(dictionary=True) as cursor:
-        if request.method == 'POST':
-            question_id = request.form.get('question_id')
-            student_answer = request.form.get('answer')
-
-            if question_id and student_answer:
-                cursor.execute("SELECT answer FROM questions WHERE id = %s", (question_id,))
-                correct_answer = cursor.fetchone()['answer']
-                is_correct = int(student_answer) == correct_answer
-
-                cursor.execute("INSERT INTO student_assignment_responses (assignment_id, question_id, user_id, student_answer, is_correct) VALUES (%s, %s, %s, %s, %s)",
-                               (assignment_id, question_id, session['user_id'], student_answer, is_correct))
-                db_connection.commit()
-
-            # Move to the next question index
-            question_index += 1
-
-        # Attempt to fetch a question, iterating over remaining difficulties if needed
+        # Fetch the current question and hint before handling the student's answer
         question_found = False
         for difficulty in difficulty_levels[difficulty_levels.index(current_difficulty):]:
             cursor.execute("""
-                SELECT q.id, q.question_text, q.answer FROM questions q
+                SELECT q.id, q.question_text, q.answer, q.hint FROM questions q
                 JOIN assignment_questions aq ON q.id = aq.question_id
                 WHERE aq.assignment_id = %s AND q.difficulty = %s
                 ORDER BY q.id LIMIT 1 OFFSET %s
@@ -238,27 +226,38 @@ def attempt_assignment(assignment_id, question_index):
             current_question = cursor.fetchone()
 
             if current_question:
-                # Found a question; update session and break out of the loop
+                correct_answer = current_question['answer']
+                hint = current_question.get('hint', None)  # Retrieve the hint before processing student input
                 session['difficulty_level'] = difficulty
                 current_difficulty = difficulty  # Keep track of the difficulty level for display
                 question_found = True
                 break
             else:
-                # Reset index for the next difficulty level if no question was found
                 question_index = 0
+
+        if request.method == 'POST':
+            question_id = request.form.get('question_id')
+            student_answer = request.form.get('answer')
+
+            if question_id and student_answer:
+                is_correct = int(student_answer) == correct_answer
+
+                cursor.execute("INSERT INTO student_assignment_responses (assignment_id, question_id, user_id, student_answer, is_correct) VALUES (%s, %s, %s, %s, %s)",
+                               (assignment_id, question_id, session['user_id'], student_answer, is_correct))
+                db_connection.commit()
+
+            question_index += 1
 
         # Generate multiple-choice options if a question is found
         options = []
         if question_found and current_question:
-            correct_answer = current_question['answer']
             options = [correct_answer] + random.sample(range(correct_answer - 10, correct_answer + 10), 3)
             random.shuffle(options)
         else:
-            # No more questions left in all difficulty levels
             flash("You have completed all questions in this assignment!")
             return redirect(url_for('view_assignments'))
 
-    return render_template('attempt_assignment.html', current_question=current_question, options=options, assignment_id=assignment_id, question_index=question_index, current_difficulty=current_difficulty)
+    return render_template('attempt_assignment.html', current_question=current_question, options=options, assignment_id=assignment_id, question_index=question_index, current_difficulty=current_difficulty, hint=hint)
 
 
 
@@ -432,10 +431,11 @@ def add_question():
         question_text = request.form['question_text']
         answer = request.form['answer']
         difficulty = request.form['difficulty']
+        hint = request.form['hint']  
 
         with db_connection.cursor(dictionary=True) as cursor:
-            cursor.execute("INSERT INTO questions (question_text, answer, difficulty) VALUES (%s, %s, %s)", 
-                           (question_text, answer, difficulty))
+            cursor.execute("INSERT INTO questions (question_text, answer, difficulty, hint) VALUES (%s, %s, %s, %s)", 
+                           (question_text, answer, difficulty, hint))
             db_connection.commit()
         flash('Question added successfully!')
         return redirect(url_for('questions'))
@@ -480,7 +480,9 @@ def play():
     options = [correct_answer] + random.sample(range(correct_answer - 10, correct_answer + 10), 3)
     random.shuffle(options)
 
-    return render_template('play.html', question=question, options=options)
+    hint = question['hint']
+
+    return render_template('play.html', question=question, options=options, hint=hint)
 
 # Route to View Student Progress
 @app.route('/progress')

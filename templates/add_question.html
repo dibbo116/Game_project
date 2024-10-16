@@ -12,14 +12,21 @@
         <form method="POST" action="/add_question">
             <label>Question Text:</label><br>
             <input type="text" name="question_text" required><br>
+            
             <label>Answer:</label><br>
             <input type="number" name="answer" required><br>
+            
+        
+            <label>Hint:</label><br>
+            <input type="text" name="hint"><br>
+            
             <label>Difficulty:</label><br>
             <select name="difficulty">
                 <option value="easy">Easy</option>
                 <option value="medium">Medium</option>
                 <option value="hard">Hard</option>
             </select><br>
+
             <button type="submit">Add Question</button>
         </form>
         <a href="/questions"><button>Back to Questions</button></a>
