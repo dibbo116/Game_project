@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role ENUM('student', 'teacher') NOT NULL,
+    role ENUM('student', 'teacher') NOT NULL
 );
 
 -- Create the teacher_profiles table
@@ -71,3 +71,5 @@ CREATE TABLE IF NOT EXISTS student_assignment_responses (
     FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+ALTER TABLE questions ALTER COLUMN hint TEXT;

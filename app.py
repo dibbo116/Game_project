@@ -16,7 +16,7 @@ db_connection = mysql.connector.connect(
     database="game"
 )
 
-# Define the directory where you want to save uploaded files
+# Define the directory to save uploaded files
 UPLOAD_FOLDER = 'static/uploads/'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -93,9 +93,13 @@ def student_dashboard():
     if 'user_id' not in session or session['role'] != 'student':
         flash('Only students can access this page!')
         return redirect(url_for('login'))
-    return render_template('student_dashboard.html')
+    with db_connection.cursor(dictionary=True) as cursor:
+        # Fetch the teacher's full name
+        cursor.execute("SELECT username FROM users WHERE id = %s", (session['user_id'],))
+        profile = cursor.fetchone()
+    return render_template('student_dashboard.html',username=profile['username'])
 
-# View Assignment Progress Route Asaduddin mohamad (104701433)
+# View Assignment Progress Route
 @app.route('/view_assignment_progress')
 def view_assignment_progress():
     if 'user_id' not in session or session['role'] != 'student':
@@ -133,7 +137,7 @@ def teacher_dashboard():
         profile = cursor.fetchone()
 
     return render_template('teacher_dashboard.html', full_name=profile['full_name'])
-# New Route for Teacher to View Student Assignment Progress
+# Route for Teacher to View Student Assignment Progress
 @app.route('/student_assignment_progress')
 def student_assignment_progress():
     if 'user_id' not in session or session['role'] != 'teacher':
@@ -155,7 +159,6 @@ def student_assignment_progress():
         student_progress = cursor.fetchall()
 
     return render_template('student_assignment_progress.html', student_progress=student_progress)
-
 
 # Route to View Teacher Profile
 @app.route('/teacher_profile')
@@ -220,23 +223,36 @@ def view_assignments():
         assignments = cursor.fetchall()
 
     return render_template('view_assignments.html', assignments=assignments)
-# Route to attempt an assignment question-by-question (student)(104701433 Asaduddin mohammad)
+
+# Route to attempt an assignment question-by-question
 @app.route('/attempt_assignment/<int:assignment_id>/<int:question_index>', methods=['GET', 'POST'])
 def attempt_assignment(assignment_id, question_index):
     if 'user_id' not in session or session['role'] != 'student':
         flash('Only students can attempt assignments!')
         return redirect(url_for('login'))
 
-    # Initialize hint to avoid UnboundLocalError
-    hint = None
-    correct_answer = None
-
     # Define difficulty levels in order
     difficulty_levels = ['easy', 'medium', 'hard']
     current_difficulty = session.get('difficulty_level', 'easy')  # Default to 'easy'
 
     with db_connection.cursor(dictionary=True) as cursor:
-        # Fetch the current question and hint before handling the student's answer
+        if request.method == 'POST':
+            question_id = request.form.get('question_id')
+            student_answer = request.form.get('answer')
+
+            if question_id and student_answer:
+                cursor.execute("SELECT answer FROM questions WHERE id = %s", (question_id,))
+                correct_answer = cursor.fetchone()['answer']
+                is_correct = int(student_answer) == correct_answer
+
+                cursor.execute("INSERT INTO student_assignment_responses (assignment_id, question_id, user_id, student_answer, is_correct) VALUES (%s, %s, %s, %s, %s)",
+                               (assignment_id, question_id, session['user_id'], student_answer, is_correct))
+                db_connection.commit()
+
+            # Move to the next question index
+            question_index += 1
+
+        # Attempt to fetch a question, iterating over remaining difficulties if needed
         question_found = False
         for difficulty in difficulty_levels[difficulty_levels.index(current_difficulty):]:
             cursor.execute("""
@@ -248,42 +264,29 @@ def attempt_assignment(assignment_id, question_index):
             current_question = cursor.fetchone()
 
             if current_question:
-                correct_answer = current_question['answer']
-                hint = current_question.get('hint', None)  # Retrieve the hint before processing student input
+                # Found a question; update session and break out of the loop
                 session['difficulty_level'] = difficulty
                 current_difficulty = difficulty  # Keep track of the difficulty level for display
                 question_found = True
                 break
             else:
+                # Reset index for the next difficulty level if no question was found
                 question_index = 0
-
-        if request.method == 'POST':
-            question_id = request.form.get('question_id')
-            student_answer = request.form.get('answer')
-
-            if question_id and student_answer:
-                is_correct = int(student_answer) == correct_answer
-
-                cursor.execute("INSERT INTO student_assignment_responses (assignment_id, question_id, user_id, student_answer, is_correct) VALUES (%s, %s, %s, %s, %s)",
-                               (assignment_id, question_id, session['user_id'], student_answer, is_correct))
-                db_connection.commit()
-
-            question_index += 1
 
         # Generate multiple-choice options if a question is found
         options = []
         if question_found and current_question:
+            correct_answer = current_question['answer']
             options = [correct_answer] + random.sample(range(correct_answer - 10, correct_answer + 10), 3)
             random.shuffle(options)
+            hint = current_question['hint']
         else:
+            # No more questions left in all difficulty levels
             flash("You have completed all questions in this assignment!")
             return redirect(url_for('view_assignments'))
 
     return render_template('attempt_assignment.html', current_question=current_question, options=options, assignment_id=assignment_id, question_index=question_index, current_difficulty=current_difficulty, hint=hint)
 
-
-
-      
 
 # Route to add questions to an assignment (teacher)
 @app.route('/add_questions_to_assignment/<int:assignment_id>', methods=['GET', 'POST'])
@@ -297,10 +300,11 @@ def add_questions_to_assignment(assignment_id):
             question_text = request.form['question_text']
             answer = request.form['answer']
             difficulty = request.form['difficulty']
+            hint = request.form['hint']
 
             # Insert the new question into the questions table
-            cursor.execute("INSERT INTO questions (question_text, answer, difficulty) VALUES (%s, %s, %s)",
-                           (question_text, answer, difficulty))
+            cursor.execute("INSERT INTO questions (question_text, answer, difficulty, hint) VALUES (%s, %s, %s, %s)",
+                           (question_text, answer, difficulty, hint))
             question_id = cursor.lastrowid  # Get the ID of the newly created question
 
             # Link the question to the assignment in the assignment_questions table
@@ -393,11 +397,6 @@ def start_assignment(assignment_id):
 
     # Reset difficulty level on assignment start
     session['difficulty_level'] = 'easy'
-
-    return redirect(url_for('attempt_assignment', assignment_id=assignment_id, question_index=0))
-
-
-    # (Asaduddin mohammad 104701433 )Check if the student has already completed this assignment
     with db_connection.cursor(dictionary=True) as cursor:
         cursor.execute("""
             SELECT COUNT(*) AS completed 
@@ -411,7 +410,6 @@ def start_assignment(assignment_id):
 
     # Redirect to the first question in the assignment if not completed
     return redirect(url_for('attempt_assignment', assignment_id=assignment_id, question_index=0))
-
 
 # Teacher Reports Route
 @app.route('/reports')
@@ -467,12 +465,15 @@ def add_question():
 @app.route('/delete_question/<int:question_id>')
 def delete_question(question_id):
     with db_connection.cursor(dictionary=True) as cursor:
+        cursor.execute("DELETE FROM scores WHERE question_id = %s", (question_id,))
         cursor.execute("DELETE FROM questions WHERE id = %s", (question_id,))
+        
         db_connection.commit()
-    flash('Question deleted successfully!')
+    
+    flash('Question and related scores deleted successfully!')
     return redirect(url_for('questions'))
 
-# Route for the Game (Question Answering)
+# Route for the PLay (Question Answering)
 @app.route('/play', methods=['GET', 'POST'])
 def play():
     if 'user_id' not in session or session['role'] != 'student':

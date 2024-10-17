@@ -32,17 +32,19 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" style="position: relative;">
         <h2>Attempt Assignment</h2>
-        <!-- Hint Icon with CSS for size and positioning -->
         <img src="{{ url_for('static', filename='images/hint.png') }}" 
-        alt="Hint Icon" style="cursor:pointer; width: 50px; height: 50px; position: absolute; top: 100px; right: 100px;" 
+        alt="Hint Icon" 
+        style="cursor: pointer; width: 50px; height: 50px; position: absolute; top: 10px; right: 10px; border: 2px solid black;" 
         onclick="showHint()">
         <!-- Hidden hint text, initially hidden -->
-        <p id="hint-text" style="display:none;">{{ hint }}</p>
+        <p id="hint-text" style="display: none;">
+        {{ hint }}
+        </p>
 
 
-        <!-- Character Animation Asaduddin mohammad (104701433)-->
+        <!-- Character Animation-->
         <div id="character-animation">
             {% with messages = get_flashed_messages() %}
                 {% if 'Correct' in messages[0] %}
@@ -52,8 +54,8 @@
                 {% endif %}
             {% endwith %}
         </div>
-<!-- Display Current Difficulty Level -->
-<p><strong>Difficulty:</strong> {{ current_difficulty|capitalize }}</p>
+        <!-- Display Current Difficulty Level -->
+        <p><strong>Difficulty:</strong> {{ current_difficulty|capitalize }}</p>
 
         <!-- Flash Messages for Feedback -->
         {% with messages = get_flashed_messages() %}
@@ -95,7 +97,8 @@
          function showHint() {
         var hint = document.getElementById('hint-text');
         hint.style.display = 'block';  // Show the hint
-}
+        }
+        
         function selectOption(element, value) {
             document.querySelectorAll('.option').forEach(option => option.classList.remove('selected'));
             element.classList.add('selected');
